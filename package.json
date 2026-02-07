@@ -1,6 +1,10 @@
 {
-  "name": "project-backup-pro",
+  "name": "dev-backup-assistant",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VishwakarmaVaibhav/dev-backup-assistant.git"
+  },
   "description": "Automatic project backup system with flexible scheduling",
   "main": "backup.js",
   "scripts": {

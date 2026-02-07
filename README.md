@@ -40,7 +40,7 @@ A modern, dark-themed interface that feels right at home on a developer's machin
 ## 🚀 Installation
 
 ### Option 1: Download & Run (Recommended)
-1. Download the latest **[Backup-Pro.zip](https://github.com/VAIBHAV-GITHUB-USERNAME/backup-pro/releases)**.
+1. Download the latest **[Backup-Pro.zip](https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases)**.
 2. Extract the folder.
 3. Double-click **`Install.bat`**.
    - It will check requirements (Node.js, WinRAR).
@@ -49,7 +49,7 @@ A modern, dark-themed interface that feels right at home on a developer's machin
 
 ### Option 2: For Developers (Git)
 ```bash
-git clone https://github.com/VAIBHAV-GITHUB-USERNAME/backup-pro.git
+git clone https://github.com/VishwakarmaVaibhav/dev-backup-assistant.git
 cd backup-pro
 npm install
 ```
@@ -115,4 +115,4 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-**Made with ❤️ by [Vaibhav](https://github.com/VAIBHAV-GITHUB-USERNAME)**
+**Made with ❤️ by [Vaibhav](https://github.com/VishwakarmaVaibhav)**
