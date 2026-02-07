@@ -1,0 +1,18 @@
+{
+  "projectPath": "",
+  "backupFolder": "",
+  "projectName": "MyProject",
+  "maxBackups": 10,
+  "winrarPath": "C:\\Program Files\\WinRAR\\rar.exe",
+  "excludeFolders": ["node_modules", ".git", "dist", "build", ".next", "__pycache__"],
+  "isFirstRun": true,
+  "schedule": {
+    "monday": { "enabled": true, "time": "18:50" },
+    "tuesday": { "enabled": true, "time": "18:50" },
+    "wednesday": { "enabled": true, "time": "18:50" },
+    "thursday": { "enabled": true, "time": "18:50" },
+    "friday": { "enabled": true, "time": "18:50" },
+    "saturday": { "enabled": true, "time": "14:20" },
+    "sunday": { "enabled": false, "time": "18:50" }
+  }
+}
