@@ -2,6 +2,11 @@
 
 **Backup Pro** is a robust, cross-platform backup solution designed for **developers and students**. It automatically zips your project folders and stores them in a designated backup location, keeping multiple versions safe.
 
+![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-Default-000000?style=for-the-badge&logo=apple&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-14%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
 It features a **modern, Dark Mode Web UI** for configuration on both **macOS** and **Windows**, running locally on your machine.
 
 ---
@@ -9,14 +14,34 @@ It features a **modern, Dark Mode Web UI** for configuration on both **macOS** a
 ## ✨ Features
 
 - **Cross-Platform**: Works on macOS, Windows, and Linux.
-- **Smart Scheduling**: Set daily backups at specific times.
+- **Smart Scheduling**: Set daily backups at specific times (e.g. 18:00 on weekdays).
 - **Visual Setup UI**: No more editing JSON files manually!
 - **Incremental Archives**: Keeps `N` versions of your backups.
 - **Recursion Protection**: Smartly excludes the backup folder if it's inside the project.
 - **Email Integration**: Easily email your latest backup (supports Outlook, Mail.app).
 - **Native Experience**:
   - **macOS**: `Install.app` launches a silent setup window.
-  - **Windows**: `setup-gui.ps1` provides a native form interface.
+  - **Windows**: `Install.bat` provides a native experience.
+
+### 🕒 **Flexible Daily Schedule**
+Set different backup times for different days. Working late on Friday but relaxing on Sunday? Configure it exactly how you work.
+
+### 🧠 **Smart Exclusions**
+Automatically skips heavy folders like:
+- `node_modules`
+- `.git`
+- `dist` / `build`
+- `.next`
+- `__pycache__`
+
+### 🧹 **Auto-Cleanup**
+Keeps your drive clean by retaining only the last **N** backups (configurable, default: 10).
+
+### 📤 **One-Click Sharing**
+After a backup, instantly:
+- 📂 Open the folder
+- 📧 Send via Email
+- 📋 Copy path to clipboard
 
 ---
 
@@ -39,9 +64,21 @@ It features a **modern, Dark Mode Web UI** for configuration on both **macOS** a
 
 ### 🪟 Windows
 
-1. Download the repository or release.
-2. Right-click `install.bat` and select **"Run as Administrator"**.
-3. Follow the GUI prompts to set up your paths and schedule.
+#### Option 1: Download & Run (Recommended)
+1. Download the latest **[Backup-Pro-Win.zip](https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases)**.
+2. Extract the folder.
+3. Double-click **`Install.bat`**.
+   - It will check requirements (Node.js, WinRAR).
+   - Install dependencies.
+   - Create a desktop shortcut.
+
+#### Option 2: For Developers (Git)
+```bash
+git clone https://github.com/VishwakarmaVaibhav/dev-backup-assistant.git
+cd dev-backup-assistant
+npm install
+node setup.js
+```
 
 ---
 
@@ -59,6 +96,23 @@ It features a **modern, Dark Mode Web UI** for configuration on both **macOS** a
 ### Uninstall
 - **macOS**: Run `uninstall.sh`.
 - **Windows**: Run `uninstall.bat`.
+
+---
+
+## ⚙️ Configuration
+
+Your settings are saved in `config.json`. You can edit it manually if you prefer, but the Web UI is recommended.
+
+```json
+{
+  "projectPath": "/path/to/project",
+  "backupFolder": "/path/to/backups",
+  "schedule": {
+    "monday": { "enabled": true, "time": "18:00" },
+    "saturday": { "enabled": true, "time": "12:00" }
+  }
+}
+```
 
 ---
 
@@ -101,3 +155,7 @@ This creates `Backup-Pro-Mac.zip` containing `Install.app` and all necessary scr
 ## 📜 License
 
 MIT License. Free to use and modify.
+
+---
+
+**Made with ❤️ by [Vaibhav](https://github.com/VishwakarmaVaibhav)**
