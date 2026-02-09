@@ -43,6 +43,15 @@ try {
 
   if (isWindows) {
     // Windows: Use WinRAR
+    // Validate WinRAR path first
+    if (!config.winrarPath || !fs.existsSync(config.winrarPath)) {
+      console.error("\n❌ ERROR: WinRAR not found!");
+      console.error("   Path configured: " + (config.winrarPath || "(empty)"));
+      console.error("\n   Please install WinRAR from: https://www.win-rar.com/download.html");
+      console.error("   Then restart Backup Pro.\n");
+      process.exit(1);
+    }
+    
     const winrarPath = `"${config.winrarPath}"`;
     // Build exclude arguments for WinRAR
     const excludeArgs = config.excludeFolders

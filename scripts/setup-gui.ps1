@@ -19,6 +19,32 @@ $colors = @{
     Input = [System.Drawing.Color]::FromArgb(38, 38, 48)
 }
 
+# =============== WINRAR AUTO-DETECTION ===============
+function Find-WinRAR {
+    $paths = @(
+        "C:\Program Files\WinRAR\rar.exe",
+        "C:\Program Files (x86)\WinRAR\rar.exe"
+    )
+    foreach ($path in $paths) {
+        if (Test-Path $path) {
+            return $path
+        }
+    }
+    return $null
+}
+
+function Show-WinRARWarning {
+    $result = [System.Windows.Forms.MessageBox]::Show(
+        "WinRAR is required for creating backups but was not found on your system.`n`nWould you like to download WinRAR now?`n`nAfter installing, restart Backup Pro.",
+        "WinRAR Not Found",
+        [System.Windows.Forms.MessageBoxButtons]::YesNo,
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    )
+    if ($result -eq "Yes") {
+        Start-Process "https://www.win-rar.com/download.html"
+    }
+}
+
 # Load existing config or create default
 if (Test-Path $configPath) {
     $config = Get-Content $configPath -Raw | ConvertFrom-Json
@@ -28,7 +54,7 @@ if (Test-Path $configPath) {
         backupFolder = ""
         projectName = "MyProject"
         maxBackups = 10
-        winrarPath = "C:\Program Files\WinRAR\rar.exe"
+        winrarPath = ""
         schedule = [PSCustomObject]@{
             monday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
             tuesday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
@@ -40,6 +66,19 @@ if (Test-Path $configPath) {
         }
         excludeFolders = @("node_modules", ".git", "dist", "build", ".next", "__pycache__")
         isFirstRun = $true
+    }
+}
+
+# Auto-detect WinRAR if path is empty or invalid
+if ([string]::IsNullOrEmpty($config.winrarPath) -or !(Test-Path $config.winrarPath)) {
+    $detectedPath = Find-WinRAR
+    if ($detectedPath) {
+        $config.winrarPath = $detectedPath
+        # Save the detected path immediately
+        $jsonContent = $config | ConvertTo-Json -Depth 5
+        [System.IO.File]::WriteAllText($configPath, $jsonContent, [System.Text.UTF8Encoding]::new($false))
+    } else {
+        Show-WinRARWarning
     }
 }
 
@@ -431,6 +470,36 @@ $btnInstall.Add_Click({
 })
 
 $btnBackupNow.Add_Click({
+    # Validate WinRAR first
+    if ([string]::IsNullOrEmpty($config.winrarPath) -or !(Test-Path $config.winrarPath)) {
+        $result = [System.Windows.Forms.MessageBox]::Show(
+            "WinRAR is not installed or configured correctly.`n`nPath: $($config.winrarPath)`n`nWould you like to download WinRAR now?",
+            "WinRAR Required",
+            [System.Windows.Forms.MessageBoxButtons]::YesNo,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        )
+        if ($result -eq "Yes") {
+            Start-Process "https://www.win-rar.com/download.html"
+        }
+        $lblStatus.Text = "WinRAR not found. Please install WinRAR and restart."
+        $lblStatus.ForeColor = $colors.Danger
+        return
+    }
+    
+    # Validate project path
+    if ([string]::IsNullOrEmpty($txtProject.Text) -or !(Test-Path $txtProject.Text)) {
+        $lblStatus.Text = "Please select a valid project folder first."
+        $lblStatus.ForeColor = $colors.Danger
+        return
+    }
+    
+    # Validate backup destination
+    if ([string]::IsNullOrEmpty($txtBackup.Text)) {
+        $lblStatus.Text = "Please select a backup destination folder."
+        $lblStatus.ForeColor = $colors.Danger
+        return
+    }
+    
     $lblStatus.Text = "Creating backup... Please wait."
     $lblStatus.ForeColor = $colors.Warning
     $form.Refresh()
