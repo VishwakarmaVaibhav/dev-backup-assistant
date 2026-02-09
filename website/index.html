@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Pro - Automatic Project Backups for Developers</title>
+    <meta name="description"
+        content="Free, open-source backup tool for developers. Schedule daily backups, exclude node_modules, auto-cleanup old files.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a10;
+            --bg-card: #12121a;
+            --accent: #00c8b4;
+            --accent-glow: rgba(0, 200, 180, 0.3);
+            --text: #f0f0f5;
+            --text-dim: #8c8ca0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 120px 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 16px;
+            letter-spacing: -2px;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: var(--text);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 200, 180, 0.1);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 100px 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-desc {
+            color: var(--text-dim);
+        }
+
+        /* How it Works */
+        .how-it-works {
+            padding: 100px 0;
+            background: var(--bg-card);
+        }
+
+        .steps {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .step {
+            text-align: center;
+            max-width: 250px;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: var(--bg-dark);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+        }
+
+        /* Download Section */
+        .download {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .download-box {
+            background: linear-gradient(135deg, rgba(0, 200, 180, 0.1) 0%, rgba(0, 200, 180, 0.05) 100%);
+            border: 1px solid var(--accent);
+            border-radius: 24px;
+            padding: 60px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .download-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .download-subtitle {
+            color: var(--text-dim);
+            margin-bottom: 32px;
+        }
+
+        .requirements {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-content">
+            <div class="logo">BACKUP PRO</div>
+            <h1 class="tagline">Automatic Project Backups Made Easy</h1>
+            <p class="subtitle">
+                Free, open-source backup tool for developers. Get daily popup reminders,
+                smart file exclusions, and one-click sharing.
+            </p>
+            <div class="cta-buttons">
+                <a href="https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases/latest/download/backup-pro.zip"
+                    class="btn btn-primary">
+                    <span>⬇</span> Download for Windows
+                </a>
+                <a href="https://github.com/VishwakarmaVaibhav/dev-backup-assistant" class="btn btn-secondary">
+                    <span>★</span> View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Why Backup Pro?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">Daily Reminders</h3>
+                    <p class="feature-desc">Get popup notifications at your preferred time. Different schedules for
+                        different days.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Smart Exclusions</h3>
+                    <p class="feature-desc">Automatically skips node_modules, .git, dist, build folders. Clean backups
+                        every time.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧹</div>
+                    <h3 class="feature-title">Auto Cleanup</h3>
+                    <p class="feature-desc">Configure how many backups to keep. Older ones are automatically deleted.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📤</div>
+                    <h3 class="feature-title">Easy Sharing</h3>
+                    <p class="feature-desc">One-click to open folder, send via email, or copy path for quick sharing.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Beautiful UI</h3>
+                    <p class="feature-desc">Modern dark theme interface. Welcome wizard for first-time setup.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💯</div>
+                    <h3 class="feature-title">100% Free</h3>
+                    <p class="feature-desc">Open source, no ads, no tracking. Your backups stay on your machine.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Download & Install</h3>
+                    <p class="step-desc">Download the ZIP, extract, and run Install.bat</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Configure</h3>
+                    <p class="step-desc">Set your project folder, backup location, and schedule</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Relax</h3>
+                    <p class="step-desc">Daily popups remind you to backup. One click and done!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download">
+        <div class="container">
+            <div class="download-box">
+                <h2 class="download-title">Ready to secure your code?</h2>
+                <p class="download-subtitle">Download Backup Pro and never lose your work again.</p>
+                <a href="https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases/latest/download/backup-pro.zip"
+                    class="btn btn-primary">
+                    <span>⬇</span> Download Now - Free
+                </a>
+                <div class="requirements">
+                    <strong>Requirements:</strong> Windows 10/11 • Node.js • WinRAR
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Made with ❤️ by <a href="https://github.com/VishwakarmaVaibhav">Vaibhav</a> •
+                <a href="https://github.com/VishwakarmaVaibhav/dev-backup-assistant">GitHub</a> •
+                Open Source (MIT)
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const btn = document.querySelector('.download-box .btn-primary');
+            const heroBtn = document.querySelector('.cta-buttons .btn-primary');
+
+            function isMac() {
+                return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            }
+
+            function updateButton(button) {
+                if (!button) return;
+
+                if (isMac()) {
+                    button.href = "https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases/latest/download/Backup-Pro-Mac-v1.1.0.zip";
+                    button.innerHTML = "<span>🍎</span> Download for macOS";
+                } else {
+                    button.href = "https://github.com/VishwakarmaVaibhav/dev-backup-assistant/releases/latest/download/Backup-Pro-Win-v1.1.0.zip";
+                    button.innerHTML = "<span>🪟</span> Download for Windows";
+                }
+            }
+
+            updateButton(btn);
+            updateButton(heroBtn);
+        });
+    </script>
+</body>
+
+</html>

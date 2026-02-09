@@ -1,0 +1,45 @@
+{
+  "projectPath": "/Users/vaibhavvishwakarma/Documents/college/sem 5/",
+  "backupFolder": "/Users/vaibhavvishwakarma/Documents/college/back/",
+  "projectName": "last try",
+  "maxBackups": 10,
+  "winrarPath": "",
+  "schedule": {
+    "monday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "tuesday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "wednesday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "thursday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "friday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "saturday": {
+      "enabled": false,
+      "time": "15:55"
+    },
+    "sunday": {
+      "enabled": true,
+      "time": "16:42"
+    }
+  },
+  "excludeFolders": [
+    "node_modules",
+    ".git",
+    "dist",
+    "build",
+    ".next",
+    "__pycache__"
+  ]
+}

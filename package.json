@@ -1,0 +1,21 @@
+{
+  "name": "dev-backup-assistant",
+  "version": "1.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VishwakarmaVaibhav/dev-backup-assistant.git"
+  },
+  "description": "Automatic project backup system with flexible scheduling",
+  "main": "backup.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "backup": "node backup.js",
+    "install-task": "powershell -ExecutionPolicy Bypass -File scripts/install.ps1",
+    "uninstall-task": "powershell -ExecutionPolicy Bypass -File scripts/uninstall.ps1"
+  },
+  "author": "Vaibhav",
+  "license": "MIT",
+  "dependencies": {
+    "readline-sync": "^1.4.10"
+  }
+}

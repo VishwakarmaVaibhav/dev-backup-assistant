@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Pro - Setup</title>
+    <style>
+        :root {
+            --bg: #121218;
+            --card: #1c1c24;
+            --accent: #00c8b4;
+            --accent-hover: #00e6c8;
+            --text: #f0f0f5;
+            --text-dim: #8c8cpx;
+            --input: #262630;
+            --success: #50c878;
+            --danger: #dc5050;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            flex: 1;
+            background: var(--input);
+            border: 1px solid #333;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--accent);
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+        }
+
+        button.primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Schedule Grid */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            background: var(--card);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .day-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .day-row:last-child {
+            border-bottom: none;
+        }
+
+        .day-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-input {
+            width: 80px;
+            text-align: center;
+        }
+
+        .actions {
+            margin-top: 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            flex: 1;
+            padding: 12px;
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            height: 20px;
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>BACKUP PRO</h1>
+        <div class="subtitle">Configure your backup settings</div>
+
+        <div class="section" id="winrarSection" style="display:none;">
+            <label>WinRAR Path (Windows)</label>
+            <div class="input-group">
+                <input type="text" id="winrarPath" placeholder="C:\Program Files\WinRAR\rar.exe">
+            </div>
+        </div>
+
+        <div class="section">
+            <label>Project Folder</label>
+            <div class="input-group">
+                <input type="text" id="projectPath" placeholder="/path/to/project">
+                <button onclick="browse('projectPath')">Browse</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <label>Backup Destination</label>
+            <div class="input-group">
+                <input type="text" id="backupFolder" placeholder="/path/to/backups">
+                <button onclick="browse('backupFolder')">Browse</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="input-group">
+                <div style="flex: 2">
+                    <label>Project Name</label>
+                    <input type="text" id="projectName" placeholder="MyProject">
+                </div>
+                <div style="flex: 1">
+                    <label>Keep Backups</label>
+                    <input type="number" id="maxBackups" value="10">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <label style="color: var(--accent); font-size: 1rem; margin-bottom: 15px;">Schedule</label>
+            <div class="schedule-grid" id="scheduleValues">
+                <!-- JS will populate this -->
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="primary" onclick="saveConfig()">Save Settings</button>
+            <button onclick="installSchedule()">Install Schedule</button>
+            <button style="background: var(--success); color: var(--bg); border: none;" onclick="backupNow()">Backup
+                Now</button>
+            <button style="background: var(--danger); color: var(--text); border: none;"
+                onclick="confirmRemove()">Remove</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modalOverlay"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); align-items:center; justify-content:center;">
+        <div style="background:var(--card); padding:20px; border-radius:8px; max-width:300px; text-align:center;">
+            <p style="margin-bottom:20px;">Are you sure you want to remove all scheduled backups?</p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="closeModal()">Cancel</button>
+                <button style="background:var(--danger); color:white; border:none;" onclick="removeSchedule()">Yes,
+                    Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        let currentConfig = {};
+        let isDirty = false;
+
+        // Load Config on Start
+        window.onload = async () => {
+            try {
+                const res = await fetch('/api/config');
+                currentConfig = await res.json();
+                populateUI();
+            } catch (e) {
+                showStatus('Error loading config', 'error');
+            }
+        };
+
+        function populateUI() {
+            document.getElementById('projectPath').value = currentConfig.projectPath || '';
+            document.getElementById('backupFolder').value = currentConfig.backupFolder || '';
+            document.getElementById('projectName').value = currentConfig.projectName || 'MyProject';
+            document.getElementById('projectPath').value = currentConfig.projectPath || '';
+            document.getElementById('backupFolder').value = currentConfig.backupFolder || '';
+            document.getElementById('projectName').value = currentConfig.projectName || 'MyProject';
+            document.getElementById('maxBackups').value = currentConfig.maxBackups || 10;
+
+            // Show WinRAR field only if Windows (or if it exists in config)
+            if (navigator.userAgent.indexOf("Windows") !== -1 || currentConfig.winrarPath) {
+                document.getElementById('winrarSection').style.display = 'block';
+                document.getElementById('winrarPath').value = currentConfig.winrarPath || '';
+            }
+
+            const scheduleContainer = document.getElementById('scheduleValues');
+            scheduleContainer.innerHTML = '';
+
+            days.forEach(day => {
+                const s = currentConfig.schedule[day] || { enabled: false, time: '18:00' };
+                const time12 = to12h(s.time);
+
+                const row = document.createElement('div');
+                row.className = 'day-row';
+                row.innerHTML = `
+                <div class="day-check">
+                    <input type="checkbox" id="chk_${day}" ${s.enabled ? 'checked' : ''} onchange="markDirty()">
+                    <span style="text-transform: capitalize">${day}</span>
+                </div>
+                <!-- 12h Time Input -->
+                <div style="display:flex; gap:5px;">
+                    <select id="h_${day}" onchange="markDirty()">
+                        ${generateOptions(1, 12, time12.h)}
+                    </select>
+                    <span style="align-self:center">:</span>
+                    <select id="m_${day}" onchange="markDirty()">
+                        ${generateOptions(0, 55, time12.m, 5)}
+                    </select>
+                    <select id="ampm_${day}" onchange="markDirty()">
+                        <option value="AM" ${time12.ampm == 'AM' ? 'selected' : ''}>AM</option>
+                        <option value="PM" ${time12.ampm == 'PM' ? 'selected' : ''}>PM</option>
+                    </select>
+                </div>
+            `;
+                scheduleContainer.appendChild(row);
+            });
+
+            // Add listeners for top fields
+            ['projectPath', 'backupFolder', 'projectName', 'maxBackups', 'winrarPath'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', markDirty);
+                    el.addEventListener('input', markDirty);
+                }
+            });
+            isDirty = false;
+        }
+
+        function markDirty() {
+            isDirty = true;
+            const btn = document.querySelector('button.primary');
+            if (btn) btn.innerText = "Save Settings *";
+        }
+
+        // Helper: 24h "HH:MM" -> { h, m, ampm }
+        function to12h(timeStr) {
+            if (!timeStr) return { h: 12, m: '00', ampm: 'PM' };
+            let [h, m] = timeStr.split(':').map(Number);
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            h = h ? h : 12; // the hour '0' should be '12'
+            return { h, m: m.toString().padStart(2, '0'), ampm };
+        }
+
+        // Helper: { h, m, ampm } -> 24h "HH:MM"
+        function to24h(h, m, ampm) {
+            h = parseInt(h);
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+            return `${h.toString().padStart(2, '0')}:${m}`;
+        }
+
+        function generateOptions(start, end, selected, step = 1) {
+            let html = '';
+            for (let i = start; i <= end; i += step) {
+                let val = i.toString().padStart(2, '0');
+                if (step === 1 && i < 10 && start === 1) val = i.toString(); // Simple 1-9 for hours
+                html += `<option value="${val}" ${parseInt(val) == parseInt(selected) ? 'selected' : ''}>${val}</option>`;
+            }
+            return html;
+        }
+
+        async function browse(inputId) {
+            try {
+                const res = await fetch('/api/browse');
+                const data = await res.json();
+                if (data.path) {
+                    document.getElementById(inputId).value = data.path;
+                    markDirty();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function saveConfig() {
+            const newConfig = { ...currentConfig };
+            newConfig.projectPath = document.getElementById('projectPath').value;
+            newConfig.backupFolder = document.getElementById('backupFolder').value;
+            newConfig.projectName = document.getElementById('projectName').value;
+            newConfig.projectName = document.getElementById('projectName').value;
+            newConfig.maxBackups = parseInt(document.getElementById('maxBackups').value);
+            if (document.getElementById('winrarPath').value) {
+                newConfig.winrarPath = document.getElementById('winrarPath').value;
+            }
+
+            days.forEach(day => {
+                const h = document.getElementById(`h_${day}`).value;
+                const m = document.getElementById(`m_${day}`).value;
+                const ampm = document.getElementById(`ampm_${day}`).value;
+
+                newConfig.schedule[day] = {
+                    enabled: document.getElementById(`chk_${day}`).checked,
+                    time: to24h(h, m, ampm)
+                };
+            });
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newConfig)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('Settings saved successfully!', 'success');
+                    isDirty = false;
+                    document.querySelector('button.primary').innerText = "Save Settings";
+                }
+                else showStatus('Error saving settings', 'error');
+            } catch (e) {
+                showStatus('Network error', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function confirmRemove() {
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        async function removeSchedule() {
+            closeModal();
+            showStatus('Removing schedule...', 'error');
+            try {
+                const res = await fetch('/api/uninstall-schedule', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) showStatus(data.message, 'success');
+                else showStatus('Failed: ' + data.message, 'error');
+            } catch (e) {
+                showStatus('Network error', 'error');
+            }
+        }
+
+        async function installSchedule() {
+            if (isDirty) { alert("Please save settings first!"); return; }
+            showStatus('Installing schedule...', 'success');
+            try {
+                const res = await fetch('/api/install-schedule', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) showStatus(data.message, 'success');
+                else showStatus('Failed: ' + data.message, 'error');
+            } catch (e) {
+                showStatus('Network error', 'error');
+            }
+        }
+
+        async function backupNow() {
+            if (isDirty) { alert("Please save settings first!"); return; }
+            showStatus('Creating backup... this may take a moment.', 'success');
+            try {
+                const res = await fetch('/api/backup-now', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) showStatus(data.message, 'success');
+                else showStatus('Failed: ' + data.message, 'error');
+            } catch (e) {
+                showStatus('Network error', 'error');
+            }
+        }
+
+        function showStatus(msg, type) {
+            const el = document.getElementById('status');
+            if (el) {
+                el.innerText = msg;
+                el.className = type;
+                setTimeout(() => el.innerText = '', 5000);
+            }
+        }
+    </script>
+</body>
+
+</html>
