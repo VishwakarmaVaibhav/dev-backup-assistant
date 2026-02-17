@@ -79,8 +79,17 @@ git push origin main
 
 ## 5. Deployment (Vercel)
 
+### Option A: New Project
 1.  Go to [Vercel](https://vercel.com).
 2.  Import your GitHub repository (`dev-backup-assistant`).
 3.  **Root Directory**: Click "Edit" and select `web-portal`.
-4.  **Environment Variables**: Add the same variables from your `.env.local` (GOOGLE_... and PAYU_...).
+4.  **Environment Variables**: Add the variables from `.env.local` (GOOGLE_..., PAYU_...).
 5.  Click **Deploy**.
+
+### Option B: Existing Project (Update Root Directory)
+If you already deployed the `website` folder:
+1.  Go to your Project Settings in Vercel.
+2.  Navigate to **General** > **Root Directory**.
+3.  Change it from `website` (or `.`) to `web-portal`.
+4.  Go to **Environment Variables** and add your keys (`GOOGLE_CLIENT_ID`, etc.).
+5.  Go to **Deployments** tab and redeploy the latest commit.

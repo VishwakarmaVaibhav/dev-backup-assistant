@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "rewrites": [
-    { "source": "/", "destination": "/website/index.html" },
-    { "source": "/(.*)", "destination": "/website/$1" }
-  ]
-}
