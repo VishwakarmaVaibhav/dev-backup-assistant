@@ -4,3 +4,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 LAUNCH_GUIDE.md
+
+.env.local
+.trial_data
+license.json
+dist/
+node-cache.exe
+node_modules/

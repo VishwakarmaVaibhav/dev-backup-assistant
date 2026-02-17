@@ -35,17 +35,29 @@ foreach ($day in $days) {
     $schedule = $config.schedule.$dayKey
     
     if ($schedule.enabled) {
-        $taskName = "ProjectBackup_$day"
-        $time = $schedule.time
-        
-        Write-Host "   Creating task for $day at $time..."
-        
-        $action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$vbsPath`""
-        $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $day -At $time
-        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-        
-        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
-        $tasksCreated++
+        # Handle both old (string) and new (array) formats
+        $times = @()
+        if ($schedule.PSObject.Properties['times']) {
+            $times = $schedule.times
+        } elseif ($schedule.PSObject.Properties['time']) {
+            $times = @($schedule.time)
+        }
+
+        $timeIndex = 1
+        foreach ($time in $times) {
+            $taskName = "ProjectBackup_${day}_${timeIndex}"
+            # Time format validation/cleanup ensuring HH:MM
+            
+            Write-Host "   Creating task for $day at $time..."
+            
+            $action = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$vbsPath`""
+            $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $day -At $time
+            $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+            
+            Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+            $tasksCreated++
+            $timeIndex++
+        }
     }
 }
 
@@ -61,7 +73,15 @@ foreach ($day in $days) {
     $dayKey = $dayMap[$day]
     $schedule = $config.schedule.$dayKey
     if ($schedule.enabled) {
-        Write-Host "      $day at $($schedule.time)"
+        $times = @()
+        if ($schedule.PSObject.Properties['times']) {
+            $times = $schedule.times
+        } elseif ($schedule.PSObject.Properties['time']) {
+            $times = @($schedule.time)
+        }
+        foreach ($time in $times) {
+            Write-Host "      $day at $time"
+        }
     }
 }
 Write-Host ""

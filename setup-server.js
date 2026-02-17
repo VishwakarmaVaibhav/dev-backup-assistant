@@ -226,7 +226,7 @@ function startServer(port) {
         }
     });
 
-    server.listen(port, () => {
+    server.listen(port, '127.0.0.1', () => {
         console.log(`Setup Server running at http://localhost:${port}/`);
         openBrowser(`http://localhost:${port}/`);
     });

@@ -37,43 +37,69 @@ async function setup() {
 
   // Schedule Setup
   console.log("\n⏰ SCHEDULE SETUP");
-  console.log("   Configure backup time for each day (press Enter to keep default)\n");
+  console.log("   Configure backup times for each day (press Enter to keep default)\n");
+  console.log("   NOTE: You can enter multiple times separated by commas (e.g. 09:00, 14:00, 18:00)");
 
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
   for (const day of days) {
-    const current = config.schedule[day];
+    const current = config.schedule[day] || { enabled: false, times: ["09:00"] };
+    // Handle migration from old string time to array
+    if (typeof current.time === 'string') {
+        current.times = [current.time];
+        delete current.time;
+    }
+
     const enabled = await ask(`   ${day.charAt(0).toUpperCase() + day.slice(1)} - Enable? (y/n) [${current.enabled ? 'y' : 'n'}]: `);
 
     if (enabled.toLowerCase() === 'n') {
-      config.schedule[day].enabled = false;
+      config.schedule[day] = { enabled: false, times: [] };
     } else if (enabled.toLowerCase() === 'y' || enabled === '') {
-      config.schedule[day].enabled = current.enabled || enabled.toLowerCase() === 'y';
-
-      if (config.schedule[day].enabled) {
-        const time = await ask(`   ${day.charAt(0).toUpperCase() + day.slice(1)} - Time (HH:MM) [${current.time}]: `);
-        config.schedule[day].time = time.trim() || current.time;
+      config.schedule[day] = { enabled: true, times: current.times };
+      
+      const defaultTimes = current.times.join(", ");
+      const timesInput = await ask(`   ${day.charAt(0).toUpperCase() + day.slice(1)} - Times (HH:MM) [${defaultTimes}]: `);
+      
+      const finalTimes = (timesInput.trim() || defaultTimes)
+        .split(",")
+        .map(t => t.trim())
+        .filter(t => /^\d{2}:\d{2}$/.test(t));
+      
+      if (finalTimes.length === 0) {
+          console.log("   ⚠️  Invalid time format. Using default.");
+          config.schedule[day].times = current.times;
+      } else {
+          config.schedule[day].times = finalTimes;
       }
     }
   }
 
-  // Max Backups
-  console.log("\n🗂️  How many backups to keep? (older ones will be deleted)");
-  const maxBackups = await ask("   Max Backups [10]: ");
-  config.maxBackups = parseInt(maxBackups) || 10;
+  // Backup Mode
+  console.log("\n⚙️  BACKUP SETTINGS");
+  console.log("   1. Versioned Mode (Keep multiple backups)");
+  console.log("   2. Overwrite Mode (Keep only the latest backup)");
+  
+  const modeInput = await ask("   Select Mode [1]: ");
+  const isOverwrite = modeInput.trim() === "2";
+  
+  config.backupMode = isOverwrite ? "overwrite" : "versioned";
 
-  // WinRAR Path (Only for Windows)
-  const isWindows = process.platform === "win32";
-  if (isWindows) {
-    console.log("\n📦 WinRAR Path (press Enter if default is correct):");
-    console.log(`   Default: ${config.winrarPath}`);
-    const winrarPath = await ask("   WinRAR Path: ");
-    config.winrarPath = winrarPath.trim() || config.winrarPath;
+  if (isOverwrite) {
+      config.maxBackups = 1;
+      config.retentionDays = 0; // Not applicable or just 1
+      console.log("   👉 Mode: Overwrite (Single file will be maintained)");
   } else {
-    // For macOS/Linux, we use 'zip', which is usually in PATH
-    console.log("\n📦 Compression Tool:");
-    console.log("   Using system 'zip' command (auto-detected).");
+      // Max Backups
+      console.log("\n🗂️  How many backups to keep by COUNT? (older ones deleted)");
+      const maxBackups = await ask(`   Max Backups [${config.maxBackups || 10}]: `);
+      config.maxBackups = parseInt(maxBackups) || 10;
+      
+      // Retention Days
+      console.log("\n🗓️  How many DAYS to keep backups? (0 = keep forever until Max Backups reached)");
+      const retention = await ask(`   Retention Days [${config.retentionDays || 0}]: `);
+      config.retentionDays = parseInt(retention) || 0;
   }
+
 
   // Save Config
   fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));

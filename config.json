@@ -1,46 +1,60 @@
 {
-  "projectPath": "",
-  "backupFolder": "",
-  "projectName": "MyProject",
-  "maxBackups": 10,
-  "winrarPath": "",
-  "schedule": {
-    "monday": {
-      "enabled": true,
-      "time": "18:50"
-    },
-    "tuesday": {
-      "enabled": true,
-      "time": "18:50"
-    },
-    "wednesday": {
-      "enabled": true,
-      "time": "18:50"
-    },
-    "thursday": {
-      "enabled": true,
-      "time": "18:50"
-    },
-    "friday": {
-      "enabled": true,
-      "time": "18:50"
-    },
-    "saturday": {
-      "enabled": true,
-      "time": "14:30"
-    },
-    "sunday": {
-      "enabled": false,
-      "time": "18:50"
-    }
-  },
-  "excludeFolders": [
-    "node_modules",
-    ".git",
-    "dist",
-    "build",
-    ".next",
-    "__pycache__"
-  ],
-  "isFirstRun": true
+    "projectPath":  "c:\\Users\\Admin\\Dev-backup-assistant",
+    "backupFolder":  "c:\\Users\\Admin\\Dev-backup-assistant\\backups",
+    "projectName":  "TestBackup",
+    "schedule":  {
+                     "monday":  {
+                                    "enabled":  true,
+                                    "times":  [
+                                                  "09:00",
+                                                  "14:00"
+                                              ]
+                                },
+                     "tuesday":  {
+                                     "enabled":  true,
+                                     "times":  [
+                                                   "09:00",
+                                                   "12:00",
+                                                   "18:00"
+                                               ]
+                                 },
+                     "wednesday":  {
+                                       "enabled":  true,
+                                       "times":  [
+                                                     "09:00"
+                                                 ]
+                                   },
+                     "thursday":  {
+                                      "enabled":  true,
+                                      "times":  [
+                                                    "09:00"
+                                                ]
+                                  },
+                     "friday":  {
+                                    "enabled":  true,
+                                    "times":  [
+                                                  "09:00"
+                                              ]
+                                },
+                     "saturday":  {
+                                      "enabled":  false,
+                                      "times":  [
+
+                                                ]
+                                  },
+                     "sunday":  {
+                                    "enabled":  false,
+                                    "times":  [
+
+                                              ]
+                                }
+                 },
+    "maxBackups":  5,
+    "retentionDays":  3,
+    "backupMode":  "versioned",
+    "excludeFolders":  [
+                           "node_modules",
+                           ".git",
+                           "backups"
+                       ]
 }

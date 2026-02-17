@@ -33,7 +33,19 @@ function Find-WinRAR {
     return $null
 }
 
-function Show-WinRARWarning {
+# =============== NODE AUTO-DETECTION ===============
+function Find-Node {
+    # Check for bundled node in bin folder (relative to root)
+    $bundledNode = Join-Path $rootDir "bin\node.exe"
+    if (Test-Path $bundledNode) {
+        return $bundledNode
+    }
+    # Fallback to system node
+    return "node"
+}
+
+# Check for WinRAR
+if (-not (Find-WinRAR)) {
     $result = [System.Windows.Forms.MessageBox]::Show(
         "WinRAR is required for creating backups but was not found on your system.`n`nWould you like to download WinRAR now?`n`nAfter installing, restart Backup Pro.",
         "WinRAR Not Found",
@@ -54,33 +66,26 @@ if (Test-Path $configPath) {
         backupFolder = ""
         projectName = "MyProject"
         maxBackups = 10
-        winrarPath = ""
+        retentionDays = 0
+        backupMode = "versioned"
+        serverUrl = "http://localhost:3000"
         schedule = [PSCustomObject]@{
-            monday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
-            tuesday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
-            wednesday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
-            thursday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
-            friday = [PSCustomObject]@{ enabled = $true; time = "18:50" }
-            saturday = [PSCustomObject]@{ enabled = $true; time = "14:30" }
-            sunday = [PSCustomObject]@{ enabled = $false; time = "18:50" }
+            monday = [PSCustomObject]@{ enabled = $true; times = @("18:50") }
+            tuesday = [PSCustomObject]@{ enabled = $true; times = @("18:50") }
+            wednesday = [PSCustomObject]@{ enabled = $true; times = @("18:50") }
+            thursday = [PSCustomObject]@{ enabled = $true; times = @("18:50") }
+            friday = [PSCustomObject]@{ enabled = $true; times = @("18:50") }
+            saturday = [PSCustomObject]@{ enabled = $true; times = @("14:30") }
+            sunday = [PSCustomObject]@{ enabled = $false; times = @("18:50") }
         }
         excludeFolders = @("node_modules", ".git", "dist", "build", ".next", "__pycache__")
         isFirstRun = $true
     }
 }
 
-# Auto-detect WinRAR if path is empty or invalid
-if ([string]::IsNullOrEmpty($config.winrarPath) -or !(Test-Path $config.winrarPath)) {
-    $detectedPath = Find-WinRAR
-    if ($detectedPath) {
-        $config.winrarPath = $detectedPath
-        # Save the detected path immediately
-        $jsonContent = $config | ConvertTo-Json -Depth 5
-        [System.IO.File]::WriteAllText($configPath, $jsonContent, [System.Text.UTF8Encoding]::new($false))
-    } else {
-        Show-WinRARWarning
-    }
-}
+
+# WinRAR auto-detect removed
+
 
 $isFirstRun = $config.isFirstRun -eq $true -or [string]::IsNullOrEmpty($config.projectPath)
 
@@ -159,19 +164,35 @@ if ($isFirstRun) {
         $y += 32
     }
     
-    # Get Started Button
-    $btnGetStarted = New-Object System.Windows.Forms.Button
-    $btnGetStarted.Text = "Get Started"
-    $btnGetStarted.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
-    $btnGetStarted.Location = New-Object System.Drawing.Point(175, 400)
-    $btnGetStarted.Size = New-Object System.Drawing.Size(200, 50)
-    $btnGetStarted.BackColor = $colors.Accent
-    $btnGetStarted.ForeColor = $colors.Background
-    $btnGetStarted.FlatStyle = "Flat"
-    $btnGetStarted.FlatAppearance.BorderSize = 0
-    $btnGetStarted.Cursor = "Hand"
-    $btnGetStarted.Add_Click({ $welcomeForm.Close() })
-    $welcomeForm.Controls.Add($btnGetStarted)
+    # Buttons
+    $btnTrial = New-Object System.Windows.Forms.Button
+    $btnTrial.Text = "Start Free Trial"
+    $btnTrial.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $btnTrial.Location = New-Object System.Drawing.Point(50, 400)
+    $btnTrial.Size = New-Object System.Drawing.Size(200, 45)
+    $btnTrial.BackColor = $colors.Card
+    $btnTrial.ForeColor = $colors.Text
+    $btnTrial.FlatStyle = "Flat"
+    $btnTrial.FlatAppearance.BorderColor = $colors.TextDim
+    $btnTrial.Cursor = "Hand"
+    $btnTrial.Add_Click({ $welcomeForm.Close() })
+    $welcomeForm.Controls.Add($btnTrial)
+
+    $btnLoginWelcome = New-Object System.Windows.Forms.Button
+    $btnLoginWelcome.Text = "Login / Activate"
+    $btnLoginWelcome.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+    $btnLoginWelcome.Location = New-Object System.Drawing.Point(280, 400)
+    $btnLoginWelcome.Size = New-Object System.Drawing.Size(200, 45)
+    $btnLoginWelcome.BackColor = $colors.Accent
+    $btnLoginWelcome.ForeColor = $colors.Background
+    $btnLoginWelcome.FlatStyle = "Flat"
+    $btnLoginWelcome.FlatAppearance.BorderSize = 0
+    $btnLoginWelcome.Cursor = "Hand"
+    $btnLoginWelcome.Add_Click({ 
+        Start-Process "http://localhost:3001"
+        $welcomeForm.Close()
+    })
+    $welcomeForm.Controls.Add($btnLoginWelcome)
     
     [void]$welcomeForm.ShowDialog()
 }
@@ -289,7 +310,7 @@ $form.Controls.Add($btnBrowseBackup)
 
 $y += 65
 
-# Project Name and Max Backups
+# Project Name
 $lblName = New-Object System.Windows.Forms.Label
 $lblName.Text = "PROJECT NAME"
 $lblName.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
@@ -307,32 +328,99 @@ $txtName.ForeColor = $colors.Text
 $txtName.BorderStyle = "FixedSingle"
 $form.Controls.Add($txtName)
 
+# Backup Mode
+$lblMode = New-Object System.Windows.Forms.Label
+$lblMode.Text = "BACKUP MODE"
+$lblMode.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblMode.ForeColor = $colors.TextDim
+$lblMode.Location = New-Object System.Drawing.Point(240, $y)
+$lblMode.Size = New-Object System.Drawing.Size(120, 20)
+$form.Controls.Add($lblMode)
+
+$cmbMode = New-Object System.Windows.Forms.ComboBox
+$cmbMode.Items.Add("Versioned")
+$cmbMode.Items.Add("Overwrite")
+$cmbMode.SelectedItem = if ($config.backupMode -eq "overwrite") { "Overwrite" } else { "Versioned" }
+$cmbMode.Location = New-Object System.Drawing.Point(240, ($y + 22))
+$cmbMode.Size = New-Object System.Drawing.Size(100, 28)
+$cmbMode.BackColor = $colors.Input
+$cmbMode.ForeColor = $colors.Text
+$cmbMode.FlatStyle = "Flat"
+$form.Controls.Add($cmbMode)
+
+# Max Backups
 $lblKeep = New-Object System.Windows.Forms.Label
-$lblKeep.Text = "KEEP BACKUPS"
+$lblKeep.Text = "MAX COPIES"
 $lblKeep.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 $lblKeep.ForeColor = $colors.TextDim
-$lblKeep.Location = New-Object System.Drawing.Point(250, $y)
-$lblKeep.Size = New-Object System.Drawing.Size(120, 20)
+$lblKeep.Location = New-Object System.Drawing.Point(360, $y)
+$lblKeep.Size = New-Object System.Drawing.Size(90, 20)
 $form.Controls.Add($lblKeep)
 
 $txtKeep = New-Object System.Windows.Forms.TextBox
 $txtKeep.Text = $config.maxBackups
-$txtKeep.Location = New-Object System.Drawing.Point(250, ($y + 22))
+$txtKeep.Location = New-Object System.Drawing.Point(360, ($y + 22))
 $txtKeep.Size = New-Object System.Drawing.Size(60, 28)
 $txtKeep.BackColor = $colors.Input
 $txtKeep.ForeColor = $colors.Text
 $txtKeep.BorderStyle = "FixedSingle"
 $form.Controls.Add($txtKeep)
 
+# Retention Days
+$lblDays = New-Object System.Windows.Forms.Label
+$lblDays.Text = "MAX DAYS"
+$lblDays.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblDays.ForeColor = $colors.TextDim
+$lblDays.Location = New-Object System.Drawing.Point(440, $y)
+$lblDays.Size = New-Object System.Drawing.Size(90, 20)
+$form.Controls.Add($lblDays)
+
+$txtDays = New-Object System.Windows.Forms.TextBox
+$txtDays.Text = if ($config.retentionDays) { $config.retentionDays } else { "0" }
+$txtDays.Location = New-Object System.Drawing.Point(440, ($y + 22))
+$txtDays.Size = New-Object System.Drawing.Size(60, 28)
+$txtDays.BackColor = $colors.Input
+$txtDays.ForeColor = $colors.Text
+$txtDays.BorderStyle = "FixedSingle"
+$form.Controls.Add($txtDays)
+
+# Toggles for Mode
+$cmbMode.Add_SelectedIndexChanged({
+    if ($cmbMode.SelectedItem -eq "Overwrite") {
+        $txtKeep.Enabled = $false
+        $txtDays.Enabled = $false
+        $txtKeep.BackColor = $colors.Background
+        $txtDays.BackColor = $colors.Background
+    } else {
+        $txtKeep.Enabled = $true
+        $txtDays.Enabled = $true
+        $txtKeep.BackColor = $colors.Input
+        $txtDays.BackColor = $colors.Input
+    }
+})
+
+# Set initial state based on mode
+if ($cmbMode.SelectedItem -eq "Overwrite") {
+    $txtKeep.Enabled = $false
+    $txtDays.Enabled = $false
+    $txtKeep.BackColor = $colors.Background
+    $txtDays.BackColor = $colors.Background
+} else {
+    $txtKeep.Enabled = $true
+    $txtDays.Enabled = $true
+    $txtKeep.BackColor = $colors.Input
+    $txtDays.BackColor = $colors.Input
+}
+
 # ===== SCHEDULE SECTION =====
 $y += 75
 
 $scheduleHeader = New-Object System.Windows.Forms.Label
-$scheduleHeader.Text = "SCHEDULE"
+$scheduleHeader.Text = "SCHEDULE (Times separated by comma)"
 $scheduleHeader.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
 $scheduleHeader.ForeColor = $colors.Accent
 $scheduleHeader.Location = New-Object System.Drawing.Point(20, $y)
-$scheduleHeader.Size = New-Object System.Drawing.Size(200, 25)
+$scheduleHeader.Size = New-Object System.Drawing.Size(400, 25)
 $form.Controls.Add($scheduleHeader)
 
 $y += 30
@@ -356,10 +444,20 @@ foreach ($i in 0..6) {
     $form.Controls.Add($chk)
     $checkboxes[$key] = $chk
     
+    # Handle array or string time
+    $timeStr = ""
+    if ($scheduleData.PSObject.Properties['times']) {
+        $timeStr = $scheduleData.times -join ", "
+    } elseif ($scheduleData.PSObject.Properties['time']) {
+        $timeStr = $scheduleData.time
+    } else {
+        $timeStr = "09:00"
+    }
+
     $txt = New-Object System.Windows.Forms.TextBox
-    $txt.Text = $scheduleData.time
+    $txt.Text = $timeStr
     $txt.Location = New-Object System.Drawing.Point(140, $y)
-    $txt.Size = New-Object System.Drawing.Size(65, 24)
+    $txt.Size = New-Object System.Drawing.Size(360, 24)
     $txt.BackColor = $colors.Input
     $txt.ForeColor = $colors.Text
     $txt.BorderStyle = "FixedSingle"
@@ -369,7 +467,188 @@ foreach ($i in 0..6) {
     $y += 28
 }
 
-# ===== ACTION BUTTONS =====
+# ===== LICENSE SECTION =====
+$y += 20
+
+$licenseHeader = New-Object System.Windows.Forms.Label
+$licenseHeader.Text = "LICENSE INFORMATION"
+$licenseHeader.Font = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Bold)
+$licenseHeader.ForeColor = $colors.Accent
+$licenseHeader.Location = New-Object System.Drawing.Point(20, $y)
+$licenseHeader.Size = New-Object System.Drawing.Size(400, 25)
+$form.Controls.Add($licenseHeader)
+
+$y += 30
+
+# Server URL
+$lblServer = New-Object System.Windows.Forms.Label
+$lblServer.Text = "Server URL:"
+$lblServer.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblServer.ForeColor = $colors.TextDim
+$lblServer.Location = New-Object System.Drawing.Point(20, $y)
+$lblServer.Size = New-Object System.Drawing.Size(100, 20)
+$form.Controls.Add($lblServer)
+
+$txtServer = New-Object System.Windows.Forms.TextBox
+$txtServer.Text = if ($config.serverUrl) { $config.serverUrl } else { "http://localhost:3000" }
+$txtServer.Location = New-Object System.Drawing.Point(100, ($y - 3))
+$txtServer.Size = New-Object System.Drawing.Size(420, 24)
+$txtServer.BackColor = $colors.Input
+$txtServer.ForeColor = $colors.Text
+$txtServer.BorderStyle = "FixedSingle"
+$form.Controls.Add($txtServer)
+
+$btnLogin = New-Object System.Windows.Forms.Button
+$btnLogin.Text = "Login / Buy"
+$btnLogin.Location = New-Object System.Drawing.Point(530, ($y - 4))
+$btnLogin.Size = New-Object System.Drawing.Size(90, 26)
+$btnLogin.BackColor = $colors.Success
+$btnLogin.ForeColor = $colors.Background
+$btnLogin.FlatStyle = "Flat"
+$btnLogin.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$btnLogin.Add_Click({
+    Start-Process "http://localhost:3001"
+})
+$form.Controls.Add($btnLogin)
+
+$y += 35
+
+# Lost Key Link
+$lnkHelp = New-Object System.Windows.Forms.LinkLabel
+$lnkHelp.Text = "Lost Key?"
+$lnkHelp.Font = New-Object System.Drawing.Font("Segoe UI", 8)
+$lnkHelp.LinkColor = $colors.Accent
+$lnkHelp.Location = New-Object System.Drawing.Point(530, $y - 5)
+$lnkHelp.Size = New-Object System.Drawing.Size(100, 20)
+$lnkHelp.Add_Click({
+    Start-Process "http://localhost:3001/api/auth/signin"
+})
+$form.Controls.Add($lnkHelp)
+
+$y += 35
+
+# Get Device ID
+$deviceIdScript = Join-Path $rootDir "utils\print-id.js"
+$deviceId = & $nodeExe "$deviceIdScript"
+$deviceId = $deviceId.Trim()
+
+$lblId = New-Object System.Windows.Forms.Label
+$lblId.Text = "Device ID:"
+$lblId.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblId.ForeColor = $colors.TextDim
+$lblId.Location = New-Object System.Drawing.Point(20, $y)
+$lblId.Size = New-Object System.Drawing.Size(100, 20)
+$form.Controls.Add($lblId)
+
+$txtId = New-Object System.Windows.Forms.TextBox
+$txtId.Text = $deviceId
+$txtId.Location = New-Object System.Drawing.Point(100, ($y - 3))
+$txtId.Size = New-Object System.Drawing.Size(350, 24)
+$txtId.BackColor = $colors.Input
+$txtId.ForeColor = $colors.Text
+$txtId.BorderStyle = "FixedSingle"
+$txtId.ReadOnly = $true
+$form.Controls.Add($txtId)
+
+$btnCopyId = New-Object System.Windows.Forms.Button
+$btnCopyId.Text = "Copy"
+$btnCopyId.Location = New-Object System.Drawing.Point(460, ($y - 4))
+$btnCopyId.Size = New-Object System.Drawing.Size(60, 26)
+$btnCopyId.BackColor = $colors.Card
+$btnCopyId.ForeColor = $colors.Text
+$btnCopyId.FlatStyle = "Flat"
+$btnCopyId.Add_Click({
+    [System.Windows.Forms.Clipboard]::SetText($txtId.Text)
+    [System.Windows.Forms.MessageBox]::Show("Device ID copied!", "Copied", "OK", "Information")
+})
+$form.Controls.Add($btnCopyId)
+
+$y += 35
+
+# Get License Status
+$checkLicenseScript = Join-Path $rootDir "utils\check-license.js"
+$statusJson = & $nodeExe "$checkLicenseScript"
+$status = $statusJson | ConvertFrom-Json
+
+$lblStatusTitle = New-Object System.Windows.Forms.Label
+$lblStatusTitle.Text = "Status:"
+$lblStatusTitle.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$lblStatusTitle.ForeColor = $colors.TextDim
+$lblStatusTitle.Location = New-Object System.Drawing.Point(20, $y)
+$lblStatusTitle.Size = New-Object System.Drawing.Size(100, 20)
+$form.Controls.Add($lblStatusTitle)
+
+$lblStatusVal = New-Object System.Windows.Forms.Label
+$lblStatusVal.Text = $status.message
+$lblStatusVal.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+if ($status.status -eq "ACTIVE") {
+    $lblStatusVal.ForeColor = $colors.Success
+} elseif ($status.status -eq "TRIAL") {
+    $lblStatusVal.ForeColor = $colors.Warning
+} else {
+    $lblStatusVal.ForeColor = $colors.Danger
+}
+$lblStatusVal.Location = New-Object System.Drawing.Point(100, $y)
+$lblStatusVal.Size = New-Object System.Drawing.Size(400, 20)
+$form.Controls.Add($lblStatusVal)
+
+if ($status.status -ne "ACTIVE") {
+    $btnActivate = New-Object System.Windows.Forms.Button
+    $btnActivate.Text = "Enter Key"
+    $btnActivate.Location = New-Object System.Drawing.Point(460, ($y - 4))
+    $btnActivate.Size = New-Object System.Drawing.Size(80, 26)
+    $btnActivate.BackColor = $colors.Accent
+    $btnActivate.ForeColor = $colors.Background
+    $btnActivate.FlatStyle = "Flat"
+    $btnActivate.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+    
+    $btnActivate.Add_Click({
+        $keyForm = New-Object System.Windows.Forms.Form
+        $keyForm.Text = "Enter License Key"
+        $keyForm.Size = New-Object System.Drawing.Size(400, 150)
+        $keyForm.StartPosition = "CenterScreen"
+        $keyForm.FormBorderStyle = "FixedToolWindow"
+        $keyForm.BackColor = $colors.Background
+        
+        $lblKey = New-Object System.Windows.Forms.Label
+        $lblKey.Text = "License Key:"
+        $lblKey.ForeColor = $colors.Text
+        $lblKey.Location = New-Object System.Drawing.Point(20, 20)
+        $lblKey.Size = New-Object System.Drawing.Size(100, 20)
+        $keyForm.Controls.Add($lblKey)
+        
+        $txtKey = New-Object System.Windows.Forms.TextBox
+        $txtKey.Location = New-Object System.Drawing.Point(20, 45)
+        $txtKey.Size = New-Object System.Drawing.Size(340, 24)
+        $keyForm.Controls.Add($txtKey)
+        
+        $btnSubmit = New-Object System.Windows.Forms.Button
+        $btnSubmit.Text = "Activate"
+        $btnSubmit.Location = New-Object System.Drawing.Point(260, 80)
+        $btnSubmit.Size = New-Object System.Drawing.Size(100, 30)
+        $btnSubmit.BackColor = $colors.Accent
+        $btnSubmit.ForeColor = $colors.Background
+        $btnSubmit.FlatStyle = "Flat"
+        $btnSubmit.Add_Click({
+            $activateScript = Join-Path $rootDir "utils\activate-license.js"
+            $key = $txtKey.Text.Trim()
+            $result = & $nodeExe "$activateScript" "$key"
+            if ($result.Trim() -eq "SUCCESS") {
+                [System.Windows.Forms.MessageBox]::Show("License activated successfully! Please restart setup.", "Success", "OK", "Information")
+                $keyForm.Close()
+                $form.Close() # Force restart to refresh status
+            } else {
+                [System.Windows.Forms.MessageBox]::Show("Invalid License Key.", "Error", "OK", "Error")
+            }
+        })
+        $keyForm.Controls.Add($btnSubmit)
+        
+        $keyForm.ShowDialog()
+    })
+    $form.Controls.Add($btnActivate)
+}
+
+$y += 35
 $y += 20
 
 $btnSave = New-Object System.Windows.Forms.Button
@@ -429,21 +708,38 @@ $form.Controls.Add($lblStatus)
 # ===== BUTTON ACTIONS =====
 
 $btnSave.Add_Click({
+    $mode = $cmbMode.SelectedItem.ToString().ToLower()
+    $isOverwrite = $mode -eq "overwrite"
+    
+    $maxBackups = if ($isOverwrite) { 1 } else { [int]$txtKeep.Text }
+    $retentionDays = if ($isOverwrite) { 0 } else { [int]$txtDays.Text }
+
     $newConfig = [ordered]@{
         projectPath = $txtProject.Text
         backupFolder = $txtBackup.Text
         projectName = $txtName.Text
-        maxBackups = [int]$txtKeep.Text
-        winrarPath = $config.winrarPath
+        maxBackups = $maxBackups
+        retentionDays = $retentionDays
+        backupMode = $mode
+        serverUrl = $txtServer.Text
         excludeFolders = @("node_modules", ".git", "dist", "build", ".next", "__pycache__")
         isFirstRun = $false
         schedule = [ordered]@{}
     }
     
     foreach ($key in $dayKeys) {
+        $timesRaw = $timeboxes[$key].Text -split ","
+        $cleanTimes = @()
+        foreach ($t in $timesRaw) {
+            $tt = $t.Trim()
+            if ($tt -match "^\d{2}:\d{2}$") {
+                $cleanTimes += $tt
+            }
+        }
+        
         $newConfig.schedule[$key] = [ordered]@{
             enabled = $checkboxes[$key].Checked
-            time = $timeboxes[$key].Text
+            times = $cleanTimes
         }
     }
     
@@ -470,21 +766,7 @@ $btnInstall.Add_Click({
 })
 
 $btnBackupNow.Add_Click({
-    # Validate WinRAR first
-    if ([string]::IsNullOrEmpty($config.winrarPath) -or !(Test-Path $config.winrarPath)) {
-        $result = [System.Windows.Forms.MessageBox]::Show(
-            "WinRAR is not installed or configured correctly.`n`nPath: $($config.winrarPath)`n`nWould you like to download WinRAR now?",
-            "WinRAR Required",
-            [System.Windows.Forms.MessageBoxButtons]::YesNo,
-            [System.Windows.Forms.MessageBoxIcon]::Error
-        )
-        if ($result -eq "Yes") {
-            Start-Process "https://www.win-rar.com/download.html"
-        }
-        $lblStatus.Text = "WinRAR not found. Please install WinRAR and restart."
-        $lblStatus.ForeColor = $colors.Danger
-        return
-    }
+    # WinRAR check removed (Refactored to Archiver)
     
     # Validate project path
     if ([string]::IsNullOrEmpty($txtProject.Text) -or !(Test-Path $txtProject.Text)) {
@@ -505,7 +787,7 @@ $btnBackupNow.Add_Click({
     $form.Refresh()
     
     $backupScript = Join-Path $rootDir "backup.js"
-    $process = Start-Process -FilePath "node" -ArgumentList "`"$backupScript`"" -WorkingDirectory $rootDir -Wait -PassThru
+    $process = Start-Process -FilePath $nodeExe -ArgumentList "`"$backupScript`"" -WorkingDirectory $rootDir -Wait -PassThru
     
     if ($process.ExitCode -eq 0) {
         # Show success dialog with share options
