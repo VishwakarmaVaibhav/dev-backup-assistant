@@ -165,3 +165,9 @@ MIT License. Free to use and modify.
 ---
 
 **Made with ❤️ by [Vaibhav](https://github.com/VishwakarmaVaibhav)**
+
+## 🚀 Deployment Status
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FVishwakarmaVaibhav%2Fdev-backup-assistant%2Ftree%2Fmain%2Fweb-portal)
+
+The Web Portal is designed to be deployed on Vercel. Ensure `Root Directory` is set to `web-portal`.
